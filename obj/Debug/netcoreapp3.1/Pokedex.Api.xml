@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Pokedex.Api</name>
+    </assembly>
+    <members>
+        <member name="M:Pokedex.Api.Controllers.PokedexController.GetBasic(System.String)">
+            <summary>
+            Get the basic pokemon description
+            </summary>
+        </member>
+    </members>
+</doc>
