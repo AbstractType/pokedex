@@ -11,7 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
+    <ProjectReference Include="..\Pokedex.Core\Pokedex.Core.csproj" />
   </ItemGroup>
 
 </Project>
