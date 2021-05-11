@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using Pokedex.Core.Enums;
 using Pokedex.Core.Models.Responses;
 using Pokedex.Core.Models.Species;
 using Pokedex.Core.Repositories;
@@ -21,16 +22,25 @@ namespace Pokedex.Core.Services
         public async Task<BasicPokedexResponse> GetPokemonByNameTranslated(string pokemonName)
         {
             var basicResult = await GetPokemonByNameBasic(pokemonName);
+            if(basicResult.Name == null)
+            {
+                _logger.LogInformation("Cannot translate description because no pokemon was found");
+                return basicResult;
+            }
+            
+            //This can be done in its own class/method
             var noBreaklines = Regex.Replace(basicResult.Description, @"\r\n?|\n", " ");
             var translatedDesciption = new TranslationResponse();
 
             if (basicResult.Legendary || basicResult.Habitat == "Cave")
             {
-                translatedDesciption = await _apiRepository.GetTranslationForDescription(noBreaklines, true);
+                _logger.LogInformation("Translating for a legend");
+                translatedDesciption = await _apiRepository.GetTranslation(noBreaklines, Translation.Yoda);
             }
             else
             {
-                translatedDesciption = await _apiRepository.GetTranslationForDescription(noBreaklines, false);
+                _logger.LogInformation("Translating for a non legend");
+                translatedDesciption = await _apiRepository.GetTranslation(noBreaklines, Translation.Shakespeare);
             }
 
             var translatedResult = new BasicPokedexResponse
@@ -41,6 +51,7 @@ namespace Pokedex.Core.Services
                 Description = translatedDesciption.Contents.Translated
             };
 
+            _logger.LogInformation("Returning translated result");
             return translatedResult;
         }
 
@@ -51,6 +62,8 @@ namespace Pokedex.Core.Services
             if (pokemonEntry.Name != null)
             {
                 var description = "";
+
+                _logger.LogInformation("Getting the latest description in english");
                 foreach (FlavorTextEntry descText in pokemonEntry.FlavorTextEntries)
                 {
                     if (descText.Language.Name == "en" && descText.Version.Name == "omega-ruby")
@@ -67,12 +80,18 @@ namespace Pokedex.Core.Services
                     Description = description
                 };
 
+                _logger.LogInformation("Returning basic description result");
                 return pokedexResponse;
             }
             else
             {
-                //This would be returned as a Empty BasicPokemonResponse
-                return null;
+                return new BasicPokedexResponse
+                {
+                    Name = null,
+                    Habitat = "No pokemon found",
+                    Legendary = false,
+                    Description = "No pokemon found"
+                };
             }
         }
     }

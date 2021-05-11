@@ -6,6 +6,7 @@ namespace Pokedex.UnitTests.Tests
 {
     public class BaseTest
     {
+        //I built this with the intention of having some tests for Pokemon Species
         protected T GetTestData<T>(string filename)
         {
             var fileContents = GetTestData(filename);

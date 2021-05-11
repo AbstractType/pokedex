@@ -5,14 +5,14 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 
-namespace Pokedex.Core.Services
+namespace Pokedex.Core.Helpers
 {
-    public abstract class BaseService
+    public abstract class BaseRepo
     {
         protected readonly ILogger _logger;
         private readonly IHttpClientFactory _clientFactory;
 
-        public BaseService(ILogger logger, IHttpClientFactory clientFactory)
+        public BaseRepo(ILogger logger, IHttpClientFactory clientFactory)
         {
             _logger = logger;
             _clientFactory = clientFactory;
@@ -53,9 +53,10 @@ namespace Pokedex.Core.Services
             }
             catch (Exception ex)
             {
+                //This can be its own custom exception error
                 _logger.LogError(ex, $"Failed to convert '{jsonString}' to object type {typeof(T).FullName}");
                 target = default(T);
-                return false;
+                throw new Exception($"Encountered error during covertion of json", ex);
             }
         }
     }

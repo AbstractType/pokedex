@@ -17,6 +17,16 @@ namespace Pokedex.UnitTests.Builders
             };
         }
 
+        public BasicPokedexResponse BuildAsEmptyResponse()
+        {
+            _basicPokedexResponse.Name = null;
+            _basicPokedexResponse.Legendary = false;
+            _basicPokedexResponse.Habitat = "No pokemon found";
+            _basicPokedexResponse.Description = "No pokemon found";
+
+            return _basicPokedexResponse;
+        }
+
         public BasicPokedexResponse Build()
         {
             return _basicPokedexResponse;

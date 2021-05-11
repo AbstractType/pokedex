@@ -10,6 +10,8 @@ using System.Net.Http;
 using Pokedex.Core.Models.Responses;
 using Pokedex.UnitTests.Builders;
 using Newtonsoft.Json;
+using Pokedex.Core.Models;
+using Pokedex.UnitTests.Comparers;
 
 namespace Pokedex.UnitTests.Tests.Services
 {
@@ -21,6 +23,8 @@ namespace Pokedex.UnitTests.Tests.Services
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly PokedexService _pokedexService;
         private readonly BasicPokedexResponse _basicPokedexResponse;
+        private readonly PokemonSpecies _pokemonSpecies;
+        private readonly BasicPokedexResponseComparer _comparer;
 
         private const string json = "application/json";
 
@@ -31,7 +35,9 @@ namespace Pokedex.UnitTests.Tests.Services
             _mockHandler = new MockHttpMessageHandler();
             _httpClientFactory = Substitute.For<IHttpClientFactory>();
             _httpClientFactory.CreateClient().Returns(new HttpClient(_mockHandler));
+            _comparer = new BasicPokedexResponseComparer();
             _basicPokedexResponse = new BasicPokedexResponseBuilder().Build();
+            _pokemonSpecies = new PokemonSpeciesBuilder().Build();
             _pokedexService = new PokedexService(_logger, _apiRepository);
         }
 
@@ -43,12 +49,13 @@ namespace Pokedex.UnitTests.Tests.Services
             //Arrange
             var pokemonName = "mewtwo";
             _mockHandler.AddNewMockResponse("pokemon-species", "", HttpStatusCode.OK, HttpMethod.Get, JsonConvert.SerializeObject(_basicPokedexResponse), json);
+            _apiRepository.GetPokemonSpeciesByName(pokemonName).Returns(_pokemonSpecies);
 
             //Act
             var actualResult = await _pokedexService.GetPokemonByNameBasic(pokemonName);
 
             //Assert
-            Assert.Equal(_basicPokedexResponse, actualResult);
+            Assert.Equal(_basicPokedexResponse, actualResult, _comparer);
         }
 
         #endregion
@@ -59,63 +66,18 @@ namespace Pokedex.UnitTests.Tests.Services
         public async Task WhenGetPokemonIsHit_ButNoPokemonReturned_ReturnsEmptryBasicPokedexResponse()
         {
             //Arrange
+            var pokemonName = "mewtw";
+            var emptyResponse = new BasicPokedexResponseBuilder().BuildAsEmptyResponse();
+            var emptySpecies = new PokemonSpeciesBuilder().BuildAsEmpty();
+            _mockHandler.AddNewMockResponse("pokemon-species", "", HttpStatusCode.OK, HttpMethod.Get, JsonConvert.SerializeObject(_basicPokedexResponse), json);
+            _apiRepository.GetPokemonSpeciesByName(pokemonName).Returns(emptySpecies);
 
             //Act
+            var actualResult = await _pokedexService.GetPokemonByNameBasic(pokemonName);
 
             //Assert
+            Assert.Equal(emptyResponse, actualResult, _comparer);
 
-        }
-
-        #endregion
-        #endregion
-
-        #region GetTranslation
-        #region Happy Path
-        [Fact]
-        public async Task WhenGetTranslationIsHit_WithValidPokemonName_ReturnsBasicPokedexResponseAndShakespeareTranslatedDescription()
-        {
-            //Arrange
-
-            //Act
-
-            //Assert
-
-        }
-
-        [Fact]
-        public async Task WhenGetTranslationIsHit_WithValidPokemonName_ReturnsBasicPokedexResponseAndYodaTranslatedDescription()
-        {
-            //Arrange
-
-            //Act
-
-            //Assert
-
-        }
-
-        #endregion
-
-        #region Sad Path
-
-        [Fact]
-        public async Task WhenGetTranslationIsHit_WithValidPokemonNameButCapitalisedName_ReturnsBasicPokedexResponseAndTranslatedDescription()
-        {
-            //Arrange
-
-            //Act
-
-            //Assert
-
-        }
-
-        [Fact]
-        public async Task WhenGetTranslationIsHit_WithValidPokemonNameAndBreaklinesTakenInToAccount_ReturnsBasicPokedexResponseAndTranslatedDescription()
-        {
-            //Arrange
-
-            //Act
-
-            //Assert
         }
 
         #endregion

@@ -1,16 +1,17 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Pokedex.Core.Configuration;
+using Pokedex.Core.Enums;
+using Pokedex.Core.Helpers;
 using Pokedex.Core.Models;
 using Pokedex.Core.Models.Responses;
-using Pokedex.Core.Services;
 using System;
 using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace Pokedex.Core.Repositories
 {
-    public class ApiRepository : BaseService, IApiRepository
+    public class ApiRepository : BaseRepo, IApiRepository
     {
         private readonly ExternalApiOptions _options;
 
@@ -20,12 +21,12 @@ namespace Pokedex.Core.Repositories
             _options = options.Value;
         }
 
-        public async Task<TranslationResponse> GetTranslationForDescription(string description, bool yoda)
+        public async Task<TranslationResponse> GetTranslation(string description, Translation translation)
         {
             var response = new HttpResponseMessage();
             var request = new HttpRequestMessage();
 
-            if (yoda)
+            if (translation == Translation.Yoda)
                 request = new HttpRequestMessage(HttpMethod.Get, $"{_options.TranslationUri}{_options.YodaPath}{description}");
             else
                 request = new HttpRequestMessage(HttpMethod.Get, $"{_options.TranslationUri}{_options.ShakespearePath}{description}");
@@ -33,14 +34,14 @@ namespace Pokedex.Core.Repositories
             response = await CallApi(request, new StringContent(description));
             if (response.IsSuccessStatusCode)
             {
-                TryParseJsonToObject(await response.Content.ReadAsStringAsync(), out TranslationResponse translation);
-                if (translation == null)
+                TryParseJsonToObject(await response.Content.ReadAsStringAsync(), out TranslationResponse translationedDescription);
+                if (translationedDescription == null)
                 {
                     _logger.LogInformation($"No pokemon entry found by the name of {description}");
                     return null;
                 }
 
-                return translation;
+                return translationedDescription;
             }
             else
             {

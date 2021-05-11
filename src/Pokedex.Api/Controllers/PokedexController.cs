@@ -55,7 +55,7 @@ namespace Pokedex.Api.Controllers
         }
 
         /// <summary>
-        /// Get the basic pokemon description
+        /// Get the translated pokemon description
         /// </summary>
         [HttpGet()]
         [Route("/translated")]
@@ -87,5 +87,7 @@ namespace Pokedex.Api.Controllers
                 return StatusCode((int)HttpStatusCode.InternalServerError, $"Unable to get information on {pokemonName}");
             }
         }
+        //Notes
+        //There is a good option build a middleware layer for logging / expection handling.
     }
 }
